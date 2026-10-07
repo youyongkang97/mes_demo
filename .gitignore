@@ -1,0 +1,21 @@
+# ===== 密钥与运行期数据（绝对不要进版本库）=====
+secret_local.py
+secret_local.py.bak
+data/
+*.log
+
+# ===== Python =====
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# ===== 编辑器 / 系统 =====
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# ===== 离线依赖包（如需要可单独用 U 盘拷）=====
+*.whl

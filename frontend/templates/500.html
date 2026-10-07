@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>500 · 服务器内部错误 | 分拣下料单元 MES</title>
+<style>
+  :root { --cy: #22d3ee; --in: #6366f1; --txt: #dbe7f7; --dim: #7d90ad; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    font-family: "Microsoft YaHei", system-ui, sans-serif;
+    background: radial-gradient(1200px 800px at 20% 10%, #0b1626 0%, #070b14 55%, #05080f 100%);
+    color: var(--txt); display: flex; align-items: center; justify-content: center;
+  }
+  .wrap { text-align: center; padding: 0 24px; }
+  .code {
+    font-size: clamp(80px, 14vw, 150px); font-weight: 800; line-height: 1;
+    background: linear-gradient(100deg, #fecaca 20%, #f87171 52%, #818cf8 90%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 4px 22px rgba(248, 113, 113, .3));
+  }
+  .title { margin-top: 18px; font-size: 22px; letter-spacing: 4px; }
+  .desc { margin-top: 12px; font-size: 14px; color: var(--dim); max-width: 560px; }
+  a.btn {
+    display: inline-block; margin-top: 34px; padding: 12px 44px;
+    border-radius: 10px; text-decoration: none; color: #fff; letter-spacing: 2px;
+    background: linear-gradient(90deg, var(--cy), var(--in));
+    box-shadow: 0 8px 26px rgba(34, 211, 238, .3); transition: transform .2s, box-shadow .2s;
+  }
+  a.btn:hover { transform: translateY(-2px); box-shadow: 0 12px 34px rgba(99, 102, 241, .4); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="code">500</div>
+  <div class="title">服务器内部错误</div>
+  <div class="desc">{% if detail %}{{ detail }}{% else %}服务器开小差了,请稍后重试;若持续出现请联系管理员。{% endif %}</div>
+  <a class="btn" href="/">返 回 登 录</a>
+</div>
+</body>
+</html>

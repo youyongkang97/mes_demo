@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>用户管理 · 分拣下料单元 MES</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='users.css') }}?v=1">
+</head>
+<body>
+
+<header>
+  <div class="htitle"><span class="dot"></span>用户管理</div>
+  <div class="hright">
+    <span class="me"><b>{{ me.nickname or me.real_name or me.username }}</b> · {{ me.role }}</span>
+    <a class="back" href="/me">个人中心</a>
+    <a class="back" href="/do/logout">退出登录 &rarr;</a>
+  </div>
+</header>
+
+<main>
+  {% if flash_msg %}
+  <div class="msg {{ 'err' if flash_err else 'ok' }}">{{ flash_msg }}</div>
+  {% endif %}
+
+  <!-- ========== 新增账号 ========== -->
+  <div class="card">
+    <form class="bar" method="post" action="/do/user/add">
+      <label>工号</label>
+      <input type="text" name="username" maxlength="20" placeholder="留空自动编号">
+      <label>姓名</label>
+      <input type="text" name="real_name" maxlength="20" placeholder="真实姓名">
+      <label>部门</label>
+      <input type="text" name="department" maxlength="30" placeholder="如：下料班组">
+      <label>身份</label>
+      <select name="role">
+        {% for r in role_table %}
+        <option value="{{ r.role }}"{% if r.role == '普工' %} selected{% endif %}>{{ r.role }}</option>
+        {% endfor %}
+      </select>
+      <label>初始密码</label>
+      <input type="text" name="password" maxlength="32" placeholder="8-32 位，含字母和数字">
+      <button class="btn primary" type="submit">+ 新增账号</button>
+    </form>
+  </div>
+
+  <!-- ========== 账号列表 ========== -->
+  <div class="card">
+    <table>
+      <thead>
+        <tr>
+          <th>工号</th><th>昵称 / 姓名</th><th>部门</th><th>角色</th><th>状态</th>
+          <th>最后登录</th><th>登录次数</th><th style="width:430px">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for u in users %}
+        <tr>
+          <td class="mono">{{ u.username }}{% if u.username == me.username %}<i class="me-tag">我</i>{% endif %}</td>
+          <td>{{ u.nickname or u.real_name or '-' }}</td>
+          <td>{{ u.department }}</td>
+          <td>{{ u.role }}</td>
+          <td>
+            {% if u.disabled %}<span class="badge off">已停用</span>
+            {% else %}<span class="badge on">启用中</span>{% endif %}
+          </td>
+          <td class="dim">{{ u.last_login or '-' }}</td>
+          <td class="dim">{{ u.login_count }}</td>
+          <td>
+            {% if u.username == me.username %}
+              <span class="dim">当前登录的账号，不能在这里操作</span>
+            {% else %}
+              <form class="inline" method="post" action="/do/user/role">
+                <input type="hidden" name="username" value="{{ u.username }}">
+                <select name="role">
+                  {% for r in role_table %}
+                  <option value="{{ r.role }}"{% if r.role == u.role %} selected{% endif %}>{{ r.role }}</option>
+                  {% endfor %}
+                </select>
+                <button class="btn mini" type="submit">调整角色</button>
+              </form>
+
+              <form class="inline" method="post" action="/do/user/reset">
+                <input type="hidden" name="username" value="{{ u.username }}">
+                <input type="text" name="password" maxlength="32" placeholder="新密码">
+                <button class="btn mini" type="submit">重置密码</button>
+              </form>
+
+              <form class="inline" method="post" action="/do/user/status"
+                    {% if not u.disabled %}onsubmit="return confirm('确定停用账号 {{ u.username }} 吗？停用后该账号无法登录。')"{% endif %}>
+                <input type="hidden" name="username" value="{{ u.username }}">
+                <input type="hidden" name="disabled" value="{{ 0 if u.disabled else 1 }}">
+                <button class="btn mini {{ 'green' if u.disabled else 'warn' }}" type="submit">
+                  {{ '启用' if u.disabled else '停用' }}
+                </button>
+              </form>
+
+              <form class="inline" method="post" action="/do/user/delete"
+                    onsubmit="return confirm('确定删除账号 {{ u.username }} 吗？删除后该账号无法再登录，历史登录审计会保留。')">
+                <input type="hidden" name="username" value="{{ u.username }}">
+                <button class="btn mini danger" type="submit">删除</button>
+              </form>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% if not users %}<div class="empty">暂无账号</div>{% endif %}
+  </div>
+
+  <!-- ========== 邀请码：签发 + 列表 ========== -->
+  <div class="card">
+    <form class="bar" method="post" action="/do/invite/add">
+      <label>注册身份</label>
+      <select name="role">
+        <option value="组长">组长</option>
+        <option value="普工" selected>普工</option>
+      </select>
+      <label>有效期（小时）</label>
+      <input type="number" name="hours" value="72" min="1" max="720" style="width:96px">
+      <button class="btn primary" type="submit">+ 签发邀请码</button>
+      <span class="dim" style="font-size:12.5px">邀请码不能签管理员；管理员的身份请在账号列表里调整。</span>
+    </form>
+  </div>
+
+  <div class="card">
+    <table>
+      <thead>
+        <tr>
+          <th>邀请码</th><th>注册身份</th><th>创建人</th><th>创建时间</th>
+          <th>有效期至</th><th>状态</th><th style="width:110px">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for v in invites %}
+        <tr>
+          <td class="mono">{{ v.code }}</td>
+          <td>{{ v.role }}</td>
+          <td class="dim">{{ v.creator }}</td>
+          <td class="dim">{{ v.created_at }}</td>
+          <td class="dim">{{ v.expires }}</td>
+          <td>
+            {% if v.used_by %}<span class="badge off">已使用：{{ v.used_by }}</span>
+            {% else %}<span class="badge on">未使用</span>{% endif %}
+          </td>
+          <td>
+            {% if v.used_by %}
+              <span class="dim">-</span>
+            {% else %}
+              <form class="inline" method="post" action="/do/invite/revoke"
+                    onsubmit="return confirm('确定作废邀请码 {{ v.code }} 吗？作废后不能再用它注册。')">
+                <input type="hidden" name="code" value="{{ v.code }}">
+                <button class="btn mini danger" type="submit">作废</button>
+              </form>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% if not invites %}<div class="empty">暂无邀请码</div>{% endif %}
+  </div>
+
+  <!-- ========== 权限说明（内容来自 config.py 的 ROLE_PERMISSIONS，全项目只此一份） ========== -->
+  <div class="card">
+    <table>
+      <thead><tr><th style="width:140px">身份</th><th>可用功能</th></tr></thead>
+      <tbody>
+      {% for r in role_table %}
+        <tr>
+          <td><b>{{ r.role }}</b></td>
+          <td class="dim">{{ r.perms | join(' · ') if r.perms else '无（只能进个人中心改自己的资料）' }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</main>
+
+</body>
+</html>

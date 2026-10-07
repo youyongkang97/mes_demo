@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>个人中心 · 分拣下料单元 MES</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='users.css') }}?v=1">
+</head>
+<body>
+
+<header>
+  <div class="htitle"><span class="dot"></span>个人中心</div>
+  <div class="hright">
+    <span class="me"><b>{{ me.nickname or me.real_name or me.username }}</b> · {{ me.role }}</span>
+    {% if '人员管理' in me.permissions %}<a class="back" href="/users">人员管理</a>{% endif %}
+    <a class="back" href="/do/logout">退出登录 &rarr;</a>
+  </div>
+</header>
+
+<main>
+  {% if flash_msg %}
+  <div class="msg {{ 'err' if flash_err else 'ok' }}">{{ flash_msg }}</div>
+  {% endif %}
+
+  <!-- ========== 我是谁 ========== -->
+  <div class="card pad">
+    <div class="who">
+      <div class="avatar-big">
+        {% if me.avatar %}
+          <img src="/avatar/{{ me.username }}" alt="头像">
+        {% else %}
+          {{ (me.nickname or me.real_name or me.username)[0] }}
+        {% endif %}
+      </div>
+      <div>
+        <div class="who-name">{{ me.nickname or me.real_name or me.username }}</div>
+        <div class="dim small">工号 {{ me.username }} · {{ me.department or '未填写' }} · {{ me.role }}</div>
+        <div class="dim small">权限：{{ me.permissions | join(' · ') if me.permissions else '无' }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 基本资料 ========== -->
+  <div class="card pad">
+    <div class="panel-title">基本资料</div>
+    <form method="post" action="/do/profile">
+      <label class="field-label">昵称</label>
+      <input type="text" name="nickname" maxlength="20" value="{{ me.nickname }}" placeholder="最长 20 个字">
+      <label class="field-label">性别</label>
+      <select name="gender">
+        {% for g in ['男', '女', '保密'] %}
+        <option value="{{ g }}"{% if g == me.gender %} selected{% endif %}>{{ g }}</option>
+        {% endfor %}
+      </select>
+      <button class="btn primary" type="submit" style="margin-top:16px">保存资料</button>
+    </form>
+  </div>
+
+  <!-- ========== 头像 ========== -->
+  <div class="card pad">
+    <div class="panel-title">更换头像</div>
+    <form method="post" action="/do/avatar" enctype="multipart/form-data">
+      <input type="file" name="avatar" accept="image/*">
+      <button class="btn" type="submit" style="margin-top:16px">上传头像</button>
+      <p class="dim small" style="margin-top:10px">支持 png / jpg / jpeg / webp / gif，不超过 2MB。</p>
+    </form>
+  </div>
+
+  <!-- ========== 修改密码 ========== -->
+  <div class="card pad">
+    <div class="panel-title">修改密码</div>
+    <form method="post" action="/do/password">
+      <label class="field-label">原密码</label>
+      <input type="password" name="old_password" maxlength="32">
+      <label class="field-label">新密码</label>
+      <input type="password" name="new_password" maxlength="32" placeholder="8-32 位，含字母和数字">
+      <label class="field-label">确认新密码</label>
+      <input type="password" name="confirm" maxlength="32">
+      <button class="btn primary" type="submit" style="margin-top:16px">修改密码</button>
+      <p class="dim small" style="margin-top:10px">
+        修改后其它地方的登录会立即失效，需要用新密码重新登录。
+        忘了原密码的话，可以用登录页的「忘记密码」（需要绑定邮箱），或者请管理员在人员管理里重置。
+      </p>
+    </form>
+  </div>
+</main>
+
+</body>
+</html>
