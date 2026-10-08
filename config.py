@@ -88,7 +88,7 @@ DB = {
 MAIL = {
     "host": "smtp.qq.com",
     "port": 465,                    # 465 用 SSL
-    "user": "xichen-lucky@qq.com",  # 发信邮箱
+    "user": "ingrin@foxmail.com",  # 发信邮箱
     "auth_code": MAIL_AUTH_CODE,    # ← 来自 secret_local.py
 }
 
